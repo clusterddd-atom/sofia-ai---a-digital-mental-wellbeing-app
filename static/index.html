@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sofia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --mist:#E8EFEC; --panel:#F7FAF8; --ink:#1D2A31; --muted:#5B6B72;
+  --teal:#1F6F78; --teal-soft:#BFE3DD; --amber:#E8B26A; --coral:#B5483A; --line:#CBD8D3;
+  --serif:"Fraunces",Georgia,serif; --sans:"Figtree",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--mist);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+
+.app{display:grid;grid-template-columns:340px 1fr;gap:20px;max-width:1040px;height:100%;margin:0 auto;padding:20px}
+.stage{display:flex;flex-direction:column;align-items:center;gap:16px;background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:24px 20px;overflow:auto}
+.brand{font-family:var(--serif);font-weight:600;font-size:34px;letter-spacing:.01em;margin:0}
+#state{color:var(--muted);margin:0;min-height:1.5em}
+
+
+.orb-wrap{display:grid;place-items:center;width:210px;height:210px}
+#orb{width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#E4F5F1,var(--teal-soft) 30%,var(--teal) 78%);
+  box-shadow:0 0 0 0 rgba(31,111,120,.35),0 14px 40px rgba(31,111,120,.35);
+  animation:idle 6s ease-in-out infinite;transition:background .6s}
+#orb.listening{animation:listen 1.4s ease-out infinite}
+#orb.speaking{animation:speak .9s ease-in-out infinite}
+#orb.thinking{background:radial-gradient(circle at 35% 30%,#FFF1DA,var(--amber) 40%,#B9803A 85%);animation:idle 2.4s ease-in-out infinite}
+@keyframes idle{50%{transform:scale(1.05)}}
+@keyframes listen{0%{box-shadow:0 0 0 0 rgba(31,111,120,.45),0 14px 40px rgba(31,111,120,.35)}100%{box-shadow:0 0 0 46px rgba(31,111,120,0),0 14px 40px rgba(31,111,120,.35)}}
+@keyframes speak{0%,100%{transform:scale(1)}30%{transform:scale(1.09)}60%{transform:scale(.97)}}
+
+#camWrap{position:relative;width:160px}
+#cam{width:160px;height:120px;object-fit:cover;border-radius:16px;transform:scaleX(-1);background:#cfdad5;display:block}
+#faceTag{position:absolute;left:8px;bottom:8px;background:rgba(29,42,49,.78);color:#fff;font-size:13px;padding:2px 10px;border-radius:999px}
+
+.group{width:100%}
+.group h2{font-size:15px;font-weight:600;margin:0 0 8px}
+.moods{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.moods button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 0;font-size:13px;color:var(--ink)}
+.moods button:hover{border-color:var(--teal)}
+#week{display:flex;gap:6px;align-items:flex-end;height:64px;margin-top:10px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bar span{display:block;width:100%;background:var(--teal-soft);border-radius:6px 6px 2px 2px;min-height:3px}
+.bar em{font-style:normal;font-size:11px;color:var(--muted);margin-top:3px}
+.tools{display:flex;flex-direction:column;gap:8px;width:100%}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:12px;padding:9px 12px;text-align:left}
+.btn:hover{border-color:var(--teal)}
+.btn.link{border:0;background:none;color:var(--muted);text-decoration:underline;padding:4px 0;font-size:14px}
+.check{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+
+.chatcol{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:28px;overflow:hidden;min-height:0}
+#chat{flex:1;overflow:auto;padding:22px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:78%;padding:10px 14px;border-radius:18px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.sofia{background:#fff;border:1px solid var(--line);border-bottom-left-radius:6px;align-self:flex-start}
+.msg.user{background:var(--teal);color:#fff;border-bottom-right-radius:6px;align-self:flex-end}
+.msg.system{align-self:center;color:var(--muted);font-size:14px;text-align:center}
+.crisis{align-self:stretch;border:2px solid var(--coral);background:#FBEFEC;border-radius:16px;padding:12px 16px}
+.crisis strong{color:var(--coral)}
+.crisis p{margin:4px 0 0}
+
+form.compose{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:#fff}
+#text{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 18px;font:inherit;background:var(--panel);color:var(--ink)}
+.round{width:46px;height:46px;border-radius:50%;border:0;background:var(--teal);color:#fff;font-size:15px}
+#mic.on{background:var(--coral)}
+#send{width:auto;border-radius:999px;padding:0 20px}
+
+.overlay{position:fixed;inset:0;background:rgba(232,239,236,.96);display:grid;place-items:center;padding:20px;z-index:10}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:32px;max-width:520px}
+.card h1{font-family:var(--serif);font-size:34px;margin:0 0 8px}
+.card p{margin:8px 0;color:var(--muted)}
+.card .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.primary{background:var(--teal);color:#fff;border:0;border-radius:999px;padding:12px 22px;font-weight:600}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:12px 22px;color:var(--ink)}
+#breath{flex-direction:column;gap:30px;text-align:center}
+#breath:not([hidden]){display:flex;align-items:center;justify-content:center}
+#breathOrb{width:140px;height:140px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF1DA,var(--amber) 55%,#C9923F);transition:transform 4s ease-in-out}
+#breathText{font-family:var(--serif);font-size:30px;margin:0}
+
+@media (max-width:820px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto;min-height:100%}
+  .chatcol{min-height:70vh}
+}
+@media (prefers-reduced-motion:reduce){
+  #orb,#orb.listening,#orb.speaking,#orb.thinking{animation:none}
+  #breathOrb{transition:none}
+}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="consent">
+  <div class="card">
+    <h1>Hi, I'm Sofia</h1>
+    <p>I'm a voice companion who can notice how you seem and check in with you.</p>
+    <p><b>Camera:</b> optional. Your face is analysed on this device only. Video never leaves it.</p>
+    <p><b>Chat:</b> what you say or type is sent to a server and an AI service to write my replies. Mood check-ins stay in this browser, and you can delete them anytime.</p>
+    <p>I'm not a doctor or therapist and can't diagnose anything. If you're in danger, call 112, or Tele-MANAS at 14416 in India.</p>
+    <div class="row">
+      <button class="primary" id="startCam">Start with camera</button>
+      <button class="ghost" id="startNoCam">Start without camera</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="breath" hidden>
+  <div id="breathOrb"></div>
+  <p id="breathText">Breathe in</p>
+  <button class="ghost" id="breathClose">Done</button>
+</div>
+
+<div class="app">
+  <aside class="stage">
+    <h1 class="brand">Sofia</h1>
+    <div class="orb-wrap"><div id="orb"></div></div>
+    <p id="state" aria-live="polite">Ready</p>
+
+    <div id="camWrap" hidden>
+      <video id="cam" playsinline muted></video>
+      <span id="faceTag">starting</span>
+    </div>
+
+    <div class="group">
+      <h2>How are you feeling right now?</h2>
+      <div class="moods">
+        <button data-v="1">Low</button><button data-v="2">Down</button><button data-v="3">Okay</button><button data-v="4">Good</button><button data-v="5">Great</button>
+      </div>
+      <div id="week" aria-label="Your mood this week"></div>
+    </div>
+
+    <div class="tools">
+      <button class="btn" id="breathBtn">Slow breathing</button>
+      <label class="check"><input type="checkbox" id="voiceOut" checked> Sofia speaks replies</label>
+      <label class="check"><input type="checkbox" id="handsFree"> Keep listening after I reply</label>
+      <button class="btn link" id="wipe">Delete my data and stop camera</button>
+    </div>
+  </aside>
+
+  <main class="chatcol">
+    <div id="chat" aria-live="polite"></div>
+    <form class="compose" id="form">
+      <button type="button" class="round" id="mic" aria-label="Talk to Sofia">Mic</button>
+      <input id="text" autocomplete="off" placeholder="Type or press Mic to talk" aria-label="Message">
+      <button class="round" id="send" type="submit">Send</button>
+    </form>
+  </main>
+</div>
+
+<script type="module">
+import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+const $ = s => document.querySelector(s);
+const chatEl = $("#chat"), orb = $("#orb"), stateEl = $("#state"), video = $("#cam"), faceTag = $("#faceTag");
+const LOG_KEY = "sofia_log";
+let history = [], landmarker = null, camOn = false, camStream = null, camTimer = null;
+let samples = [], currentLabel = "camera off";
+let busy = false, listening = false, rec = null;
+
+
+const readLog = () => { try { return JSON.parse(localStorage.getItem(LOG_KEY) || "[]"); } catch { return []; } };
+const writeLog = l => { try { localStorage.setItem(LOG_KEY, JSON.stringify(l.slice(-300))); } catch {} };
+const addLog = e => { const l = readLog(); l.push({ t: Date.now(), ...e }); writeLog(l); };
+
+
+function setState(cls, text) { orb.className = cls === "idle" ? "" : cls; stateEl.textContent = text; }
+function addMsg(role, text) {
+  const d = document.createElement("div");
+  d.className = "msg " + role; d.textContent = text;
+  chatEl.append(d); chatEl.scrollTop = chatEl.scrollHeight;
+}
+function showCrisis() {
+  const d = document.createElement("div"); d.className = "crisis";
+  const h = document.createElement("strong"); h.textContent = "If you're in danger right now";
+  const p1 = document.createElement("p"); p1.textContent = "Call 112 for emergency help in India.";
+  const p2 = document.createElement("p"); p2.textContent = "Tele-MANAS: call or text 14416, free, any hour.";
+  const p3 = document.createElement("p"); p3.textContent = "Outside India, please call your local emergency number.";
+  d.append(h, p1, p2, p3); chatEl.append(d); chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+
+async function makeLandmarker(delegate) {
+  const fileset = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  return FaceLandmarker.createFromOptions(fileset, {
+    baseOptions: {
+      modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+      delegate
+    },
+    outputFaceBlendshapes: true, runningMode: "VIDEO", numFaces: 1
+  });
+}
+async function startCamera() {
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 }, audio: false });
+    video.srcObject = camStream; await video.play();
+    $("#camWrap").hidden = false; faceTag.textContent = "loading";
+    try { landmarker = await makeLandmarker("GPU"); } catch { landmarker = await makeLandmarker("CPU"); }
+    camOn = true; currentLabel = "no face seen";
+    camTimer = setInterval(sampleFace, 400);
+  } catch (err) {
+    console.error(err);
+    stopCamera();
+    addMsg("system", "I couldn't open the camera, so we'll chat without it.");
+  }
+}
+function stopCamera() {
+  clearInterval(camTimer); camOn = false; samples = []; currentLabel = "camera off";
+  if (camStream) camStream.getTracks().forEach(t => t.stop());
+  camStream = null; video.srcObject = null; $("#camWrap").hidden = true;
+}
+function sampleFace() {
+  if (!camOn || video.readyState < 2) return;
+  const res = landmarker.detectForVideo(video, performance.now());
+  const cats = res.faceBlendshapes?.[0]?.categories;
+  if (!cats) { samples.push(null); }
+  else {
+    const b = {}; cats.forEach(c => b[c.categoryName] = c.score);
+    const avg = (x, y) => ((b[x] || 0) + (b[y] || 0)) / 2;
+    samples.push({
+      smile: avg("mouthSmileLeft", "mouthSmileRight"), frown: avg("mouthFrownLeft", "mouthFrownRight"),
+      browDown: avg("browDownLeft", "browDownRight"), browUp: b.browInnerUp || 0,
+      wide: avg("eyeWideLeft", "eyeWideRight"), blink: avg("eyeBlinkLeft", "eyeBlinkRight"),
+      squint: avg("eyeSquintLeft", "eyeSquintRight"), jaw: b.jawOpen || 0
+    });
+  }
+  if (samples.length > 20) samples.shift();           
+  currentLabel = classify(samples); faceTag.textContent = currentLabel;
+}
+
+function classify(arr) {
+  const s = arr.filter(Boolean);
+  if (s.length < 3) return "no face seen";
+  const m = k => s.reduce((a, x) => a + x[k], 0) / s.length;
+  if (m("blink") > 0.45) return "tired";
+  if (m("smile") > 0.35) return "upbeat";
+  if (m("frown") > 0.25 || (m("browUp") > 0.3 && m("smile") < 0.1)) return "downcast";
+  if (m("browDown") > 0.3 || m("squint") > 0.35) return "tense";
+  if (m("wide") > 0.4 && m("jaw") > 0.2) return "surprised";
+  return "calm";
+}
+function emotionSummary() {
+  if (!camOn) return null;
+  let s = `face looks ${currentLabel} right now`;
+  const recent = readLog().filter(e => e.face).slice(-8);
+  const low = recent.filter(e => ["downcast", "tense", "tired"].includes(e.face)).length;
+  if (recent.length >= 5 && low >= 5) s += "; in most recent check-ins they also looked downcast, tense or tired";
+  return s;
+}
+
+
+const FEMALE_VOICE_HINT = /\b(female|woman|zira|samantha|heera|veena|aria|jenny|ava|susan|hazel|michelle|sonia|tessa|moira|karen|victoria|serena|catherine)\b/i;
+function findFemaleVoice(voices) {
+  return voices
+    .filter(v => FEMALE_VOICE_HINT.test(`${v.name} ${v.voiceURI}`))
+    .sort((a, b) => {
+      const score = v => (v.lang.toLowerCase() === "en-in" ? 2 : v.lang.toLowerCase().startsWith("en-") ? 1 : 0);
+      return score(b) - score(a);
+    })[0] || null;
+}
+function getFemaleVoice() {
+  const available = speechSynthesis.getVoices();
+  if (available.length) return Promise.resolve(findFemaleVoice(available));
+  return new Promise(resolve => {
+    const finish = () => {
+      clearTimeout(timeout);
+      speechSynthesis.removeEventListener("voiceschanged", finish);
+      resolve(findFemaleVoice(speechSynthesis.getVoices()));
+    };
+    const timeout = setTimeout(finish, 1500);
+    speechSynthesis.addEventListener("voiceschanged", finish, { once: true });
+  });
+}
+async function speak(text) {
+  if (!("speechSynthesis" in window) || !$("#voiceOut").checked) return;
+  speechSynthesis.cancel();
+  const voice = await getFemaleVoice();
+  if (!$("#voiceOut").checked) return;
+  if (!voice) {
+    addMsg("system", "No recognizable female English voice is available in this browser. Install or enable one in your device's speech settings.");
+    return;
+  }
+  return new Promise(resolve => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.voice = voice; u.lang = voice.lang || "en-IN"; u.rate = 0.95;
+    u.onstart = () => setState("speaking", "Sofia is speaking");
+    u.onend = u.onerror = () => resolve();
+    speechSynthesis.speak(u);
+  });
+}
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function listen() {
+  if (!SR) { addMsg("system", "Voice input works in Chrome or Edge. You can type instead."); return; }
+  if (listening) { rec.stop(); return; }
+  speechSynthesis.cancel();
+  rec = new SR(); rec.lang = "en-IN"; rec.interimResults = false;
+  rec.onstart = () => { listening = true; setState("listening", "Listening"); $("#mic").classList.add("on"); };
+  rec.onresult = e => send(e.results[0][0].transcript);
+  rec.onerror = () => {};
+  rec.onend = () => { listening = false; $("#mic").classList.remove("on"); if (!busy && !speechSynthesis.speaking) setState("idle", "Ready"); };
+  rec.start();
+}
+
+
+async function send(text) {
+  text = text.trim();
+  if (!text || busy) return;
+  busy = true; addMsg("user", text); $("#text").value = "";
+  if (camOn) addLog({ face: currentLabel });
+  setState("thinking", "Thinking");
+  let data;
+  try {
+    const r = await fetch("/api/chat", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text, emotion: emotionSummary(), history })
+    });
+    if (!r.ok) throw new Error("bad response");
+    data = await r.json();
+  } catch {
+    data = { reply: "I can't reach my server. Check your connection and try again.", crisis: false, error: true };
+  }
+  if (!data.error) { history.push({ role: "user", content: text }, { role: "assistant", content: data.reply }); }
+  addMsg("sofia", data.reply);
+  if (data.crisis) showCrisis();
+  busy = false;
+  await speak(data.reply);
+  setState("idle", "Ready");
+  if ($("#handsFree").checked && !data.crisis && !data.error) listen();
+}
+
+
+const MOOD_NAMES = { 1: "low", 2: "down", 3: "okay", 4: "good", 5: "great" };
+function renderWeek() {
+  const log = readLog().filter(e => e.mood), box = $("#week"); box.replaceChildren();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i);
+    const start = d.getTime(), end = start + 864e5;
+    const m = log.filter(e => e.t >= start && e.t < end).map(e => e.mood);
+    const avg = m.length ? m.reduce((a, b) => a + b) / m.length : 0;
+    const col = document.createElement("div"); col.className = "bar";
+    col.title = m.length ? `Average ${avg.toFixed(1)} of 5` : "No check-in";
+    const fill = document.createElement("span"); fill.style.height = (avg / 5 * 100) + "%";
+    const lab = document.createElement("em"); lab.textContent = d.toLocaleDateString(undefined, { weekday: "narrow" });
+    col.append(fill, lab); box.append(col);
+  }
+}
+document.querySelectorAll(".moods button").forEach(b => b.addEventListener("click", () => {
+  const v = +b.dataset.v; addLog({ mood: v }); renderWeek();
+  addMsg("system", "Check-in saved.");
+  if (v <= 2) send(`My mood check-in today is ${MOOD_NAMES[v]}.`);   // goes through the safety layer too
+}));
+
+
+let breathTimer = null;
+function breathe() {
+  $("#breath").hidden = false;
+  const o = $("#breathOrb"), t = $("#breathText");
+  const steps = [["Breathe in", 4000, 1.5], ["Hold", 4000, 1.5], ["Breathe out", 6000, 1]];
+  let i = 0;
+  const run = () => {
+    const [txt, ms, sc] = steps[i++ % 3];
+    t.textContent = txt; o.style.transitionDuration = ms + "ms"; o.style.transform = `scale(${sc})`;
+    breathTimer = setTimeout(run, ms);
+  };
+  run();
+}
+function stopBreathe() { clearTimeout(breathTimer); $("#breathOrb").style.transform = "scale(1)"; $("#breath").hidden = true; }
+
+
+async function begin(withCam) {
+  $("#consent").hidden = true;
+  const hello = "Hi, I'm Sofia. How are you feeling today?";
+  addMsg("sofia", hello);
+  speak(hello).then(() => setState("idle", "Ready"));
+  renderWeek();
+  if (withCam) await startCamera();
+}
+$("#startCam").addEventListener("click", () => begin(true));
+$("#startNoCam").addEventListener("click", () => begin(false));
+$("#form").addEventListener("submit", e => { e.preventDefault(); send($("#text").value); });
+$("#mic").addEventListener("click", listen);
+$("#breathBtn").addEventListener("click", breathe);
+$("#breathClose").addEventListener("click", stopBreathe);
+$("#wipe").addEventListener("click", () => {
+  try { localStorage.removeItem(LOG_KEY); } catch {}
+  history = []; chatEl.replaceChildren(); stopCamera(); renderWeek();
+  addMsg("system", "Your saved check-ins are deleted and the camera is off.");
+});
+</script>
+</body>
+</html>
